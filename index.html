@@ -851,4 +851,76 @@ function evaluar(){
     let coincidencias = 0;
     tokensPat.forEach(t=>{ if(tokensSer.includes(t)) coincidencias++; });
     const pct = coincidencias / tokensPat.length;
-    if(pct >
+    if(pct > mejor) mejor = pct;
+  });
+
+  const pctFinal = Math.round(mejor*100);
+  const err = 100 - pctFinal;
+
+  if(pctFinal===100){
+    res.classList.add('show','ok');
+    res.innerHTML = `🎉 ¡Perfecto! Ecuación correcta · 0% errores`;
+  }else if(pctFinal>=60){
+    res.classList.add('show','medio');
+    res.innerHTML = `👍 ${pctFinal}% correcto · ${err}% errores`;
+  }else{
+    res.classList.add('show','malo');
+    res.innerHTML = `😅 ${pctFinal}% correcto · ${err}% errores`;
+  }
+}
+
+/* =========================================================
+   10. BOTONES
+   ========================================================= */
+document.getElementById('btnResolver').addEventListener('click', evaluar);
+
+document.getElementById('btnReiniciar').addEventListener('click', ()=>{
+  editorContenido = [];
+  piezasEnBandeja = [...PIEZAS.map(p=>p.id)];
+  tachadas.clear();
+  simplificadas.clear();
+  contadorFracciones = 0;
+  limpiarFeedback();
+  document.getElementById('resultado').innerHTML = '';
+  document.getElementById('resultado').classList.remove('show','ok','medio','malo');
+  renderBandeja();
+  renderEditor();
+});
+
+document.getElementById('btnPista').addEventListener('click', ()=>{
+  editorContenido = [
+    { tipo:'pieza', id:'n50' },
+    { tipo:'fraccion', id:'sol1', numerador:[{tipo:'pieza', id:'uKm'}], denominador:[{tipo:'pieza', id:'uH'}] },
+    { tipo:'pieza', id:'opX' },
+    { tipo:'fraccion', id:'sol2', numerador:[{tipo:'pieza', id:'n1000'},{tipo:'pieza', id:'uM'}], denominador:[{tipo:'pieza', id:'n1'},{tipo:'pieza', id:'uKm'}] },
+    { tipo:'pieza', id:'opX2' },
+    { tipo:'fraccion', id:'sol3', numerador:[{tipo:'pieza', id:'n1'},{tipo:'pieza', id:'uH'}], denominador:[{tipo:'pieza', id:'n3600'},{tipo:'pieza', id:'uS'}] }
+  ];
+  const idsUsados = ['n50','uKm','uH','opX','opX2','n1000','uM','n1','n3600','uS'];
+  piezasEnBandeja = piezasEnBandeja.filter(id=>!idsUsados.includes(id));
+
+  // ✂️ Limpiar y calcular tachados correctos
+  tachadas.clear();
+  simplificadas.clear();
+  contadorFracciones = 3;
+  renderBandeja();
+  renderEditor(); // renderEditor → calcularCancelaciones() marca km y h
+
+  limpiarFeedback();
+  const res = document.getElementById('resultado');
+  res.classList.add('show','medio');
+  res.innerHTML = '💡 Solución mostrada con unidades simplificadas (km y h tachadas). Pulsa Reiniciar para intentarlo.';
+});
+
+function limpiarFeedback(){
+  document.getElementById('resultado').classList.remove('show','ok','medio','malo');
+}
+
+/* =========================================================
+   11. INICIALIZAR
+   ========================================================= */
+renderBandeja();
+renderEditor();
+</script>
+</body>
+</html>
