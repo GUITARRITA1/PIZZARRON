@@ -71,7 +71,41 @@
   .instrucciones ol{margin:6px 0 0 20px;padding:0;}
   .instrucciones li{margin-bottom:4px;}
 
-  /* EDITOR */
+  /* ===== BANDEJA (primero) ===== */
+  #bandeja{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    min-height:100px;
+    padding:8px;
+    border-radius:8px;
+    background:rgba(0,0,0,.15);
+    border:2px dashed rgba(242,242,232,.35);
+    transition:background .2s;
+    margin-bottom:12px;
+  }
+  #bandeja.drag-over{
+    background:rgba(168,230,163,.12);
+    outline:2px dashed var(--tiza-verde);
+  }
+  #bandeja .titulo-bandeja{
+    width:100%;
+    color:var(--tiza-verde);
+    font-size:.9rem;
+    margin-bottom:4px;
+    text-align:center;
+    letter-spacing:.5px;
+  }
+
+  /* ===== HERRAMIENTAS (debajo de bandeja) ===== */
+  .herramientas{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+  }
+
+  /* ===== EDITOR (después de herramientas) ===== */
   .editor-wrap{
     background:rgba(0,0,0,.2);
     border:3px solid var(--tiza-amarilla);
@@ -124,7 +158,7 @@
     padding:0 8px;
   }
 
-  /* CUADRO RESUELTO */
+  /* ===== CUADRO RESUELTO (al final) ===== */
   .resultado-wrap{
     background:rgba(0,0,0,.28);
     border:3px solid var(--tiza-verde);
@@ -151,6 +185,7 @@
     background:rgba(168,230,163,.08);
     border-radius:8px;
     border:2px solid rgba(168,230,163,.3);
+    margin-bottom:12px;
   }
   .resultado-expresion .pieza{
     cursor:default !important;
@@ -159,8 +194,31 @@
     transform:none;
     box-shadow:0 3px 0 rgba(0,0,0,.35);
   }
+  .puntaje-box{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+    padding:10px 14px;
+    background:rgba(0,0,0,.25);
+    border-radius:8px;
+    border-left:4px solid var(--tiza-verde);
+  }
+  .puntaje-box .pct{
+    font-size:1.8rem;
+    font-weight:bold;
+    color:var(--tiza-amarilla);
+    text-shadow:0 0 10px rgba(255,243,160,.4);
+  }
+  .puntaje-box .detalle{
+    font-size:.9rem;
+    color:var(--tiza);
+    line-height:1.4;
+  }
+  .puntaje-box .detalle span{color:var(--tiza-verde);font-weight:bold;}
+  .puntaje-box .detalle .err{color:var(--tiza-roja);font-weight:bold;}
 
-  /* FRACCIONES */
+  /* ===== FRACCIONES ===== */
   .fraccion{
     display:inline-flex;
     flex-direction:column;
@@ -205,33 +263,7 @@
     user-select:none;
   }
 
-  /* BANDEJA */
-  #bandeja{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-    min-height:100px;
-    padding:8px;
-    border-radius:8px;
-    background:rgba(0,0,0,.15);
-    border:2px dashed rgba(242,242,232,.35);
-    transition:background .2s;
-    margin-bottom:16px;
-  }
-  #bandeja.drag-over{
-    background:rgba(168,230,163,.12);
-    outline:2px dashed var(--tiza-verde);
-  }
-  #bandeja .titulo-bandeja{
-    width:100%;
-    color:var(--tiza-verde);
-    font-size:.9rem;
-    margin-bottom:4px;
-    text-align:center;
-    letter-spacing:.5px;
-  }
-
-  /* PIEZAS */
+  /* ===== PIEZAS ===== */
   .pieza{
     user-select:none;
     cursor:grab;
@@ -291,20 +323,12 @@
     pointer-events:none;
     z-index:2;
   }
-  /* En resultado: verde si el tachado fue correcto */
   .resultado-expresion .pieza.tachada::after{
     background:var(--tiza-verde);
     box-shadow:0 0 8px var(--tiza-verde);
   }
 
-  /* BARRA */
-  .barra{
-    display:flex;
-    gap:12px;
-    align-items:center;
-    flex-wrap:wrap;
-    margin-top:8px;
-  }
+  /* ===== BOTONES ===== */
   button{
     font-family:inherit;
     font-size:1rem;
@@ -346,6 +370,13 @@
   }
   #btnTachar svg{filter:drop-shadow(0 0 2px rgba(0,0,0,.3));}
 
+  .barra-final{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-bottom:16px;
+  }
   #resultado{
     margin-left:auto;
     font-size:1.05rem;
@@ -364,6 +395,9 @@
 
   @media(max-width:820px){
     .editor{min-height:100px;}
+    .herramientas{justify-content:center;}
+    .barra-final{justify-content:center;}
+    #resultado{margin-left:0;width:100%;}
   }
 </style>
 </head>
@@ -385,34 +419,17 @@
       <li>Arrastra las piezas de la <b>bandeja</b> al <b>editor</b>.</li>
       <li>Pulsa <b>➗ Fracción</b> para crear una fracción nueva (ilimitadas).</li>
       <li>Pulsa <b>✂️ Tachar</b> y luego haz clic en las unidades que se cancelan.</li>
-      <li>Pulsa <b>✅ Resolver</b>: la ecuación queda y aparece el cuadro <b>Resuelto</b> con la simplificación.</li>
+      <li>Pulsa <b>✅ Resolver</b>: aparece el cuadro <b>Resuelto</b> con la expresión simplificada y tu puntaje.</li>
     </ol>
   </div>
 
+  <!-- 1. BANDEJA PRIMERO -->
   <div id="bandeja">
     <div class="titulo-bandeja">🧩 Piezas disponibles (arrastra al editor)</div>
   </div>
 
-  <div class="editor-wrap">
-    <h3>
-      <span>🎯 Editor de ecuaciones (lo que armaste)</span>
-      <span class="badge-tachar" id="badgeTachar">✂️ Modo tachar: OFF</span>
-    </h3>
-    <div class="editor" id="editor">
-      <span class="placeholder">Arrastra piezas aquí o pulsa "➗ Fracción" para empezar...</span>
-    </div>
-  </div>
-
-  <!-- CUADRO RESUELTO -->
-  <div class="resultado-wrap" id="resultadoWrap">
-    <h3>✅ Resuelto (expresión simplificada)</h3>
-    <div class="resultado-expresion" id="resultadoExpresion"></div>
-  </div>
-
-  <div class="barra">
-    <button id="btnResolver">✅ Resolver</button>
-    <button id="btnReiniciar">🔄 Reiniciar</button>
-    <button id="btnPista">💡 Mostrar solución</button>
+  <!-- 2. HERRAMIENTAS justo debajo de la bandeja -->
+  <div class="herramientas">
     <button id="btnFraccion" title="Crear una fracción nueva">
       <svg width="22" height="22" viewBox="0 0 22 22">
         <line x1="3" y1="11" x2="19" y2="11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -427,23 +444,54 @@
       </svg>
       Tachar
     </button>
+  </div>
+
+  <!-- 3. EDITOR -->
+  <div class="editor-wrap">
+    <h3>
+      <span>🎯 Editor de ecuaciones (lo que armaste)</span>
+      <span class="badge-tachar" id="badgeTachar">✂️ Modo tachar: OFF</span>
+    </h3>
+    <div class="editor" id="editor">
+      <span class="placeholder">Arrastra piezas aquí o pulsa "➗ Fracción" para empezar...</span>
+    </div>
+  </div>
+
+  <!-- 4. BARRA FINAL: Resolver / Reiniciar / Pista -->
+  <div class="barra-final">
+    <button id="btnResolver">✅ Resolver</button>
+    <button id="btnReiniciar">🔄 Reiniciar</button>
+    <button id="btnPista">💡 Mostrar solución</button>
     <div id="resultado"></div>
   </div>
+
+  <!-- 5. CUADRO RESUELTO + PUNTAJE al final -->
+  <div class="resultado-wrap" id="resultadoWrap">
+    <h3>✅ Resuelto (expresión simplificada)</h3>
+    <div class="resultado-expresion" id="resultadoExpresion"></div>
+    <div class="puntaje-box" id="puntajeBox" style="display:none;">
+      <div class="pct" id="puntajePct">0%</div>
+      <div class="detalle" id="puntajeDetalle"></div>
+    </div>
+  </div>
+
 </div>
 
 <script>
 /* =========================================================
-   1. PIEZAS (con DOS × y DOS "1")
+   1. PIEZAS (con DOS ×, DOS "1", DOS km y DOS h)
    ========================================================= */
 const PIEZAS = [
   { id:'n50',   html:'50',          tipo:'numero',   valor:'50' },
   { id:'n1000', html:'1000',        tipo:'numero',   valor:'1000' },
   { id:'n1',    html:'1',           tipo:'numero',   valor:'1' },
-  { id:'n1b',   html:'1',           tipo:'numero',   valor:'1' },   // 👈 segundo "1"
+  { id:'n1b',   html:'1',           tipo:'numero',   valor:'1' },
   { id:'n3600', html:'3600',        tipo:'numero',   valor:'3600' },
   { id:'uKm',   html: iconoUnidad('km'), tipo:'unidad', valor:'km' },
+  { id:'uKm2',  html: iconoUnidad('km'), tipo:'unidad', valor:'km' }, // 👈 km extra
   { id:'uM',    html: iconoUnidad('m'),  tipo:'unidad', valor:'m'  },
   { id:'uH',    html: iconoUnidad('h'),  tipo:'unidad', valor:'h'  },
+  { id:'uH2',   html: iconoUnidad('h'),  tipo:'unidad', valor:'h'  }, // 👈 h extra
   { id:'uS',    html: iconoUnidad('s'),  tipo:'unidad', valor:'s'  },
   { id:'opX',   html: iconoOp('×'), tipo:'operador', valor:'×' },
   { id:'opX2',  html: iconoOp('×'), tipo:'operador', valor:'×' },
@@ -468,7 +516,7 @@ function iconoOp(sim){
    ========================================================= */
 let editorContenido = [];
 let piezasEnBandeja = [...PIEZAS.map(p=>p.id)];
-let tachadas = new Set();       // tachados MANUALES del alumno
+let tachadas = new Set();
 let contadorFracciones = 0;
 let modoTachar = false;
 
@@ -495,7 +543,7 @@ function renderBandeja(){
 }
 
 /* =========================================================
-   4. RENDER EDITOR (sin tachado automático)
+   4. RENDER EDITOR
    ========================================================= */
 const editor = document.getElementById('editor');
 
@@ -587,7 +635,6 @@ function bindDragPiezas(){
       document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));
     });
 
-    // ✂️ TACHAR MANUAL: clic en pieza dentro del editor
     el.addEventListener('click', e=>{
       e.stopPropagation();
       const enEditor = el.closest('#editor');
@@ -773,25 +820,17 @@ function actualizarBadge(){
 }
 
 /* =========================================================
-   9. GENERAR EXPRESIÓN RESUELTA (simplificación)
-   Toma la ecuación armada, elimina las unidades que el
-   alumno tachó (o que se cancelan correctamente) y construye
-   el cuadro "Resuelto".
+   9. CONSTRUIR EXPRESIÓN RESUELTA
    ========================================================= */
 function construirResuelto(){
   const cont = document.getElementById('resultadoExpresion');
   cont.innerHTML = '';
-  const wrap = document.getElementById('resultadoWrap');
-  wrap.classList.add('show');
 
-  // Recorremos los nodos y omitimos piezas tachadas
   editorContenido.forEach(nodo=>{
     if(nodo.tipo==='pieza'){
-      // Si es una pieza tachada, no se muestra en el resultado
       if(tachadas.has(nodo.id)){
-        // Si es operador, igual se muestra (no se tacha normalmente)
-        if(PIEZAS.find(x=>x.id===nodo.id)?.tipo === 'operador'){
-          const p = PIEZAS.find(x=>x.id===nodo.id);
+        const p = PIEZAS.find(x=>x.id===nodo.id);
+        if(p && p.tipo === 'operador'){
           cont.insertAdjacentHTML('beforeend', piezaHTML(p, { draggable:false, tachada:false }));
         }
         return;
@@ -799,14 +838,11 @@ function construirResuelto(){
       const p = PIEZAS.find(x=>x.id===nodo.id);
       if(p) cont.insertAdjacentHTML('beforeend', piezaHTML(p, { draggable:false }));
     }else if(nodo.tipo==='fraccion'){
-      // Filtrar numerador y denominador de piezas tachadas
       const numFiltrado = nodo.numerador.filter(n=>!tachadas.has(n.id));
       const denFiltrado = nodo.denominador.filter(n=>!tachadas.has(n.id));
 
-      // Si ambos quedan vacíos, no mostrar la fracción
       if(numFiltrado.length===0 && denFiltrado.length===0) return;
 
-      // Si el denominador queda vacío, mostrar solo el numerador
       if(denFiltrado.length===0){
         numFiltrado.forEach(n=>{
           const p = PIEZAS.find(x=>x.id===n.id);
@@ -814,7 +850,6 @@ function construirResuelto(){
         });
         return;
       }
-      // Si el numerador queda vacío, mostrar 1/denominador
       const numHTML = numFiltrado.length
         ? numFiltrado.map(n=>{
             const p = PIEZAS.find(x=>x.id===n.id);
@@ -865,11 +900,8 @@ const PATRONES_ACEPTADOS = [
   '50 × 1000 m 1 km × 1 h 3600 s'
 ];
 
-/* ✂️ Verifica si los tachados manuales son correctos
-   (km y h deben estar tachadas en num y den) */
 function verificarTachados(){
-  // Contar unidades tachadas por valor
-  const tachadasNum = {}; // valor -> count en numeradores
+  const tachadasNum = {};
   const tachadasDen = {};
   const noTachadasNum = {};
   const noTachadasDen = {};
@@ -893,7 +925,6 @@ function verificarTachados(){
     }
   });
 
-  // Unidades que DEBERÍAN tacharse: km y h (aparecen en num y den)
   const esperadasTachar = ['km','h'];
   let correctos = 0;
   let totalEsperados = 0;
@@ -906,7 +937,6 @@ function verificarTachados(){
     correctos += Math.min(tachadasNum[u]||0, pares) + Math.min(tachadasDen[u]||0, pares);
   });
 
-  // Penalizar tachados innecesarios (unidades que no se cancelan)
   let incorrectos = 0;
   Object.keys(tachadasNum).forEach(u=>{
     if(!esperadasTachar.includes(u)) incorrectos += tachadasNum[u];
@@ -927,10 +957,10 @@ function evaluar(){
     res.classList.add('show','malo');
     res.innerHTML = '😅 El editor está vacío. Arrastra piezas primero.';
     document.getElementById('resultadoWrap').classList.remove('show');
+    document.getElementById('puntajeBox').style.display = 'none';
     return;
   }
 
-  // 1) Puntuación por estructura de la ecuación
   let mejor = 0;
   PATRONES_ACEPTADOS.forEach(patron=>{
     const pat = normalizar(patron);
@@ -942,34 +972,47 @@ function evaluar(){
     if(pct > mejor) mejor = pct;
   });
 
-  // 2) Puntuación por tachados correctos
   const tach = verificarTachados();
   let pctTachados = 100;
   if(tach.totalEsperados > 0){
     pctTachados = Math.round((tach.correctos / tach.totalEsperados) * 100);
-    // Penalizar tachados incorrectos
     if(tach.incorrectos > 0){
       pctTachados = Math.max(0, pctTachados - tach.incorrectos * 15);
     }
   }
 
-  // 3) Puntuación combinada (70% estructura + 30% tachados)
   const pctFinal = Math.round(mejor * 70 + (pctTachados/100) * 30);
   const err = 100 - pctFinal;
 
+  // Mensaje breve en la barra
   if(pctFinal >= 95){
     res.classList.add('show','ok');
-    res.innerHTML = `🎉 ¡Perfecto! ${pctFinal}% · 0% errores · Tachados correctos`;
+    res.innerHTML = `🎉 ¡Perfecto!`;
   }else if(pctFinal>=60){
     res.classList.add('show','medio');
-    res.innerHTML = `👍 ${pctFinal}% correcto · ${err}% errores`;
+    res.innerHTML = `👍 ${pctFinal}% correcto`;
   }else{
     res.classList.add('show','malo');
-    res.innerHTML = `😅 ${pctFinal}% correcto · ${err}% errores`;
+    res.innerHTML = `😅 ${pctFinal}% correcto`;
   }
 
-  // 4) Mostrar el cuadro "Resuelto"
+  // Construir cuadro resuelto + puntaje
   construirResuelto();
+  document.getElementById('resultadoWrap').classList.add('show');
+
+  const box = document.getElementById('puntajeBox');
+  const pctEl = document.getElementById('puntajePct');
+  const detEl = document.getElementById('puntajeDetalle');
+  box.style.display = 'flex';
+
+  pctEl.textContent = pctFinal + '%';
+  pctEl.style.color = pctFinal >= 95 ? 'var(--tiza-verde)' : (pctFinal >= 60 ? 'var(--tiza-amarilla)' : 'var(--tiza-roja)');
+
+  detEl.innerHTML = `
+    Estructura de la ecuación: <span>${Math.round(mejor*100)}%</span><br>
+    Tachados correctos: <span>${pctTachados}%</span> · Tachados incorrectos: <span class="err">${tach.incorrectos}</span><br>
+    <b>Errores totales: ${err}%</b>
+  `;
 }
 
 /* =========================================================
@@ -989,6 +1032,7 @@ document.getElementById('btnReiniciar').addEventListener('click', ()=>{
   document.getElementById('resultado').classList.remove('show','ok','medio','malo');
   document.getElementById('resultadoWrap').classList.remove('show');
   document.getElementById('resultadoExpresion').innerHTML = '';
+  document.getElementById('puntajeBox').style.display = 'none';
   renderBandeja();
   renderEditor();
 });
@@ -998,41 +1042,19 @@ document.getElementById('btnPista').addEventListener('click', ()=>{
     { tipo:'pieza', id:'n50' },
     { tipo:'fraccion', id:'sol1', numerador:[{tipo:'pieza', id:'uKm'}], denominador:[{tipo:'pieza', id:'uH'}] },
     { tipo:'pieza', id:'opX' },
-    { tipo:'fraccion', id:'sol2', numerador:[{tipo:'pieza', id:'n1000'},{tipo:'pieza', id:'uM'}], denominador:[{tipo:'pieza', id:'n1'},{tipo:'pieza', id:'uKm'}] },
+    { tipo:'fraccion', id:'sol2', numerador:[{tipo:'pieza', id:'n1000'},{tipo:'pieza', id:'uM'}], denominador:[{tipo:'pieza', id:'n1'},{tipo:'pieza', id:'uKm2'}] },
     { tipo:'pieza', id:'opX2' },
-    { tipo:'fraccion', id:'sol3', numerador:[{tipo:'pieza', id:'n1b'},{tipo:'pieza', id:'uH'}], denominador:[{tipo:'pieza', id:'n3600'},{tipo:'pieza', id:'uS'}] }
+    { tipo:'fraccion', id:'sol3', numerador:[{tipo:'pieza', id:'n1b'},{tipo:'pieza', id:'uH2'}], denominador:[{tipo:'pieza', id:'n3600'},{tipo:'pieza', id:'uS'}] }
   ];
-  const idsUsados = ['n50','uKm','uH','opX','opX2','n1000','uM','n1','n1b','n3600','uS'];
+  const idsUsados = ['n50','uKm','uH','opX','opX2','n1000','uM','n1','uKm2','n1b','uH2','n3600','uS'];
   piezasEnBandeja = piezasEnBandeja.filter(id=>!idsUsados.includes(id));
 
-  // ✂️ Tachar manualmente km y h (como lo haría el alumno)
+  // ✂️ Tachar manualmente: km (num 1ª y den 2ª) + h (den 1ª y num 3ª)
   tachadas.clear();
-  tachadas.add('uKm');   // km de la 1ª fracción (num)
-  tachadas.add('uKm2');  // no existe, pero el km del den de la 2ª fracción es el mismo id uKm
-  // OJO: uKm solo existe una vez, así que lo tachamos una sola vez.
-  // Para tachar ambos, necesitamos que las piezas tengan ids únicos.
-  // Por eso la solución de pista usa piezas clonadas con ids únicos:
-  editorContenido = [
-    { tipo:'pieza', id:'n50' },
-    { tipo:'fraccion', id:'sol1', numerador:[{tipo:'pieza', id:'pKm1'}], denominador:[{tipo:'pieza', id:'pH1'}] },
-    { tipo:'pieza', id:'opX' },
-    { tipo:'fraccion', id:'sol2', numerador:[{tipo:'pieza', id:'p1000'},{tipo:'pieza', id:'pM1'}], denominador:[{tipo:'pieza', id:'p1a'},{tipo:'pieza', id:'pKm2'}] },
-    { tipo:'pieza', id:'opX2' },
-    { tipo:'fraccion', id:'sol3', numerador:[{tipo:'pieza', id:'p1b'},{tipo:'pieza', id:'pH2'}], denominador:[{tipo:'pieza', id:'p3600'},{tipo:'pieza', id:'pS1'}] }
-  ];
-  // Registrar clones como piezas válidas para renderizar
-  ['pKm1','pH1','p1000','pM1','p1a','pKm2','p1b','pH2','p3600','pS1'].forEach((id,i)=>{
-    const base = ['uKm','uH','n1000','uM','n1','uKm','n1b','uH','n3600','uS'][i];
-    const orig = PIEZAS.find(x=>x.id===base);
-    if(orig) PIEZAS.push({ id, html: orig.html, tipo: orig.tipo, valor: orig.valor });
-  });
-
-  // Tachar manualmente: km (num 1ª) + km (den 2ª) + h (den 1ª) + h (num 3ª)
-  tachadas.clear();
-  tachadas.add('pKm1');
-  tachadas.add('pKm2');
-  tachadas.add('pH1');
-  tachadas.add('pH2');
+  tachadas.add('uKm');   // km num 1ª
+  tachadas.add('uKm2');  // km den 2ª
+  tachadas.add('uH');    // h den 1ª
+  tachadas.add('uH2');   // h num 3ª
 
   contadorFracciones = 3;
   renderBandeja();
@@ -1041,7 +1063,7 @@ document.getElementById('btnPista').addEventListener('click', ()=>{
   limpiarFeedback();
   const res = document.getElementById('resultado');
   res.classList.add('show','medio');
-  res.innerHTML = '💡 Solución mostrada. km y h tachadas manualmente. Pulsa Resolver.';
+  res.innerHTML = '💡 Solución mostrada. Pulsa Resolver.';
 });
 
 function limpiarFeedback(){
