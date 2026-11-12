@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Pizarrón: Conversión 50 km/h → m/s</title>
+<style>
+  :root{
+    --verde-pizarron:#2d4a3e;
+    --verde-borde:#8b6f47;
+    --tiza:#f2f2e8;
+    --tiza-amarilla:#fff3a0;
+    --tiza-roja:#ff8a80;
+    --tiza-azul:#8ecae6;
+    --tiza-verde:#a8e6a3;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Comic Sans MS','Chalkboard SE','Segoe Print',cursive;
+    background:#1a1a1a;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    padding:20px;
+  }
+  .pizarron{
+    background:var(--verde-pizarron);
+    border:18px solid var(--verde-borde);
+    border-radius:8px;
+    box-shadow:
+      inset 0 0 80px rgba(0,0,0,.45),
+      0 20px 40px rgba(0,0,0,.6);
+    padding:25px 30px 30px;
+    max-width:1150px;
+    width:100%;
+    color:var(--tiza);
+    position:relative;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,255,255,.03) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(255,255,255,.03) 0%, transparent 40%);
+  }
+  h1{
+    text-align:center;
+    color:var(--tiza-amarilla);
+    font-size:1.6rem;
+    margin:0 0 10px;
+    text-shadow:1px 1px 3px rgba(0,0,0,.5);
+    letter-spacing:1px;
+  }
+  .enunciado{
+    background:rgba(0,0,0,.18);
+    border-left:6px solid var(--tiza-amarilla);
+    padding:12px 18px;
+    border-radius:6px;
+    font-size:1.05rem;
+    line-height:1.5;
+    margin-bottom:18px;
+    position:relative;
+  }
+  .enunciado::before{
+    content:"📝";
+    position:absolute;
+    left:-14px; top:8px;
+    font-size:1.3rem;
+    background:var(--verde-pizarron);
+    border-radius:50%;
+    padding:2px;
+  }
+  .enunciado b{color:var(--tiza-amarilla);}
+
+  /* ---------- Zonas de trabajo ---------- */
+  .zonas{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-bottom:16px;
+  }
+  .zona{
+    background:rgba(0,0,0,.15);
+    border:2px dashed rgba(242,242,232,.45);
+    border-radius:10px;
+    padding:12px;
+    min-height:130px;
+    position:relative;
+  }
+  .zona h3{
+    margin:0 0 8px;
+    font-size:.95rem;
+    color:var(--tiza-azul);
+    text-align:center;
+    letter-spacing:.5px;
+  }
+  .zona-bandeja h3{color:var(--tiza-verde);}
+  .zona-respuesta h3{color:var(--tiza-amarilla);}
+
+  /* Slots donde van los elementos */
+  .slot{
+    min-height:44px;
+    background:rgba(255,255,255,.05);
+    border-radius:6px;
+    margin:4px 0;
+    display:flex;
+    align-items:center;
+    padding:0 6px;
+    transition:background .2s, border-color .2s;
+    border:1px solid transparent;
+  }
+  .slot.drag-over{
+    background:rgba(255,243,160,.18);
+    border-color:var(--tiza-amarilla);
+  }
+  .slot .placeholder{
+    color:rgba(242,242,232,.3);
+    font-size:.8rem;
+    font-style:italic;
+    pointer-events:none;
+    user-select:none;
+  }
+
+  /* Contenedor de elementos sueltos */
+  #bandeja{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    min-height:100px;
+    padding:6px;
+    border-radius:8px;
+    transition:background .2s;
+  }
+  #bandeja.drag-over{
+    background:rgba(168,230,163,.12);
+    outline:2px dashed var(--tiza-verde);
+  }
+
+  /* ---------- Piezas arrastrables ---------- */
+  .pieza{
+    user-select:none;
+    cursor:grab;
+    background:linear-gradient(145deg, #3a5a4a, #2d4a3e);
+    border:2px solid rgba(242,242,232,.6);
+    border-radius:10px;
+    padding:6px 10px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-width:44px;
+    height:52px;
+    box-shadow:0 3px 0 rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.1);
+    transition:transform .1s, box-shadow .1s, border-color .2s;
+    color:var(--tiza);
+    font-size:1.2rem;
+    position:relative;
+    touch-action:none;
+  }
+  .pieza:hover{
+    border-color:var(--tiza-amarilla);
+    transform:translateY(-2px);
+    box-shadow:0 5px 0 rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.15);
+  }
+  .pieza:active{cursor:grabbing;}
+  .pieza.dragging{
+    opacity:.45;
+    transform:scale(.95);
+  }
+  .pieza svg{display:block;pointer-events:none;}
+
+  /* Colores por categoría */
+  .pieza.numero{border-color:var(--tiza-amarilla);color:var(--tiza-amarilla);}
+  .pieza.unidad{border-color:var(--tiza-azul);color:var(--tiza-azul);}
+  .pieza.operador{border-color:var(--tiza-roja);color:var(--tiza-roja);}
+  .pieza.tachar{border-color:#c39bd3;color:#c39bd3;font-style:italic;}
+
+  /* Pieza dentro de un slot */
+  .slot .pieza{
+    margin:4px 0;
+    cursor:grab;
+    font-size:1.1rem;
+    height:46px;
+    min-width:40px;
+  }
+
+  /* ---------- Barra inferior ---------- */
+  .barra{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-top:8px;
+  }
+  button{
+    font-family:inherit;
+    font-size:1rem;
+    padding:10px 22px;
+    border-radius:10px;
+    border:2px solid rgba(0,0,0,.3);
+    cursor:pointer;
+    font-weight:bold;
+    transition:transform .1s, box-shadow .1s;
+    box-shadow:0 4px 0 rgba(0,0,0,.35);
+  }
+  button:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.35);}
+  #btnResolver{
+    background:var(--tiza-verde);
+    color:#1e3a2e;
+  }
+  #btnReiniciar{
+    background:var(--tiza-azul);
+    color:#1e2a3a;
+  }
+  #btnPista{
+    background:var(--tiza-amarilla);
+    color:#3a2f00;
+  }
+  #resultado{
+    margin-left:auto;
+    font-size:1.15rem;
+    padding:8px 16px;
+    border-radius:10px;
+    background:rgba(0,0,0,.25);
+    min-width:200px;
+    text-align:center;
+    transition:all .3s;
+    opacity:0;
+  }
+  #resultado.show{opacity:1;}
+  #resultado.ok{background:rgba(168,230,163,.35);color:#d4ffd0;border:2px solid var(--tiza-verde);}
+  #resultado.medio{background:rgba(255,243,160,.25);color:var(--tiza-amarilla);border:2px solid var(--tiza-amarilla);}
+  #resultado.malo{background:rgba(255,138,128,.25);color:var(--tiza-roja);border:2px solid var(--tiza-roja);}
+
+  /* Feedback por slot */
+  .slot.correcto{border:2px solid var(--tiza-verde);background:rgba(168,230,163,.15);}
+  .slot.incorrecto{border:2px solid var(--tiza-roja);background:rgba(255,138,128,.15);}
+  .slot.vacio-error{border:2px solid var(--tiza-roja);background:rgba(255,138,128,.12);}
+
+  @media(max-width:780px){
+    .zonas{grid-template-columns:1fr;}
+    h1{font-size:1.25rem;}
+    .barra{justify-content:center;}
+    #resultado{margin-left:0;width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div class="pizarron">
+  <h1>✏️ Conversión de Unidades: 50 km/h → m/s</h1>
+
+  <!-- Enunciado -->
+  <div class="enunciado">
+    <b>Enunciado:</b> Un automóvil viaja a una velocidad de <b>50 km/h</b>.
+    Expresa esta velocidad en <b>metros por segundo (m/s)</b>.
+    <br>
+    <small style="opacity:.85">💡 Recuerda: 1 km = 1000 m &nbsp;·&nbsp; 1 h = 3600 s. Arrastra las piezas a la zona de respuesta para construir la conversión. Puedes usar la fracción para encadenar factores y el tachado para simplificar unidades.</small>
+  </div>
+
+  <div class="zonas">
+    <!-- Bandeja de piezas sueltas -->
+    <div class="zona zona-bandeja">
+      <h3>🧩 Piezas disponibles</h3>
+      <div id="bandeja"></div>
+    </div>
+
+    <!-- Zona de respuesta con slots -->
+    <div class="zona zona-respuesta">
+      <h3>🎯 Zona de respuesta</h3>
+      <div id="respuesta">
+        <!-- Slots generados por JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Barra de acciones -->
+  <div class="barra">
+    <button id="btnResolver">✅ Resolver</button>
+    <button id="btnReiniciar">🔄 Reiniciar</button>
+    <button id="btnPista">💡 Pista</button>
+    <div id="resultado"></div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   1. DEFINICIÓN DE PIEZAS
+   Cada pieza: id único, etiqueta visible, tipo (para color),
+   y "valor lógico" que se usará para evaluar la respuesta.
+   ========================================================= */
+const PIEZAS = [
+  // Números
+  { id:'n50',   html:'50',          tipo:'numero',   valor:'50' },
+  { id:'n1000', html:'1000',        tipo:'numero',   valor:'1000' },
+  { id:'n1',    html:'1',           tipo:'numero',   valor:'1' },
+  { id:'n3600', html:'3600',        tipo:'numero',   valor:'3600' },
+
+  // Unidades (con mini SVG temático)
+  { id:'uKm',   html: iconoUnidad('km'), tipo:'unidad', valor:'km' },
+  { id:'uM',    html: iconoUnidad('m'),  tipo:'unidad', valor:'m'  },
+  { id:'uH',    html: iconoUnidad('h'),  tipo:'unidad', valor:'h'  },
+  { id:'uS',    html: iconoUnidad('s'),  tipo:'unidad', valor:'s'  },
+
+  // Operadores
+  { id:'opX',   html: iconoOp('×'), tipo:'operador', valor:'×' },
+  { id:'opDiv', html: iconoOp('÷'), tipo:'operador', valor:'÷' },
+  { id:'opEq',  html: iconoOp('='), tipo:'operador', valor:'=' },
+
+  // Fracción (barra) y tachado
+  { id:'fracc', html: iconoFraccion(), tipo:'operador', valor:'frac' },
+  { id:'tachar',html:'̸',           tipo:'tachar',  valor:'tachar' }
+];
+
+/* ---------- Generadores de SVG (las "imágenes") ---------- */
+function iconoUnidad(txt){
+  return `<svg width="46" height="34" viewBox="0 0 46 34">
+    <rect x="1" y="1" width="44" height="32" rx="6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <text x="23" y="23" text-anchor="middle" font-size="16" font-family="inherit" fill="currentColor" font-weight="bold">${txt}</text>
+  </svg>`;
+}
+function iconoOp(sim){
+  return `<svg width="34" height="34" viewBox="0 0 34 34">
+    <circle cx="17" cy="17" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
+    <text x="17" y="24" text-anchor="middle" font-size="18" font-family="inherit" fill="currentColor" font-weight="bold">${sim}</text>
+  </svg>`;
+}
+function iconoFraccion(){
+  return `<svg width="34" height="34" viewBox="0 0 34 34">
+    <line x1="4" y1="17" x2="30" y2="17" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="17" y1="6"  x2="17" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+    <line x1="17" y1="22" x2="17" y2="28" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".6"/>
+  </svg>`;
+}
+
+/* =========================================================
+   2. RESPUESTA ESPERADA
+   La zona de respuesta tiene 8 slots en orden.
+   Cada slot espera un valor lógico concreto.
+   Solución típica:
+     [50] [km] / [h] × [1000] [m] / [1] [km] × [1] [h] / [3600] [s]
+   Para simplificar la actividad usamos esta secuencia (8 slots):
+     Slot 1: 50
+     Slot 2: km
+     Slot 3: h
+     Slot 4: ×
+     Slot 5: 1000
+     Slot 6: m
+     Slot 7: 3600
+     Slot 8: s
+   Nota: se acepta el "=" en cualquier slot del 4 al 8 como operador válido
+   sólo si el usuario lo coloca, pero la rúbrica principal son los valores.
+   ========================================================= */
+const RESPUESTA = ['50','km','h','×','1000','m','3600','s'];
+// Slots donde puede ir el "=" (opcional) — no son obligatorios
+const SLOTS_OPCIONALES = [3,4,5,6,7];
+
+/* =========================================================
+   3. ESTADO
+   ========================================================= */
+let colocados = new Array(RESPUESTA.length).fill(null); // id de pieza en cada slot
+let piezasEnBandeja = [...PIEZAS.map(p=>p.id)];
+
+/* =========================================================
+   4. RENDER
+   ========================================================= */
+const bandeja = document.getElementById('bandeja');
+const contResp = document.getElementById('respuesta');
+
+function piezaHTML(p){
+  return `<div class="pieza ${p.tipo}" data-id="${p.id}" draggable="true">${p.html}</div>`;
+}
+
+function renderBandeja(){
+  bandeja.innerHTML = '';
+  piezasEnBandeja.forEach(id=>{
+    const p = PIEZAS.find(x=>x.id===id);
+    if(p) bandeja.insertAdjacentHTML('beforeend', piezaHTML(p));
+  });
+  bindDrag();
+}
+
+function renderSlots(){
+  contResp.innerHTML = '';
+  for(let i=0;i<RESPUESTA.length;i++){
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+    slot.dataset.slot = i;
+    if(colocados[i]===null){
+      slot.innerHTML = `<span class="placeholder">Arrastra aquí (${i+1})</span>`;
+    }else{
+      const p = PIEZAS.find(x=>x.id===colocados[i]);
+      slot.innerHTML = piezaHTML(p);
+    }
+    contResp.appendChild(slot);
+  }
+  bindDrag();
+}
+
+/* =========================================================
+   5. DRAG & DROP (HTML5 + touch fallback simple)
+   ========================================================= */
+let draggedId = null;
+let draggedFrom = null; // {tipo:'bandeja'} o {tipo:'slot', index}
+
+function bindDrag(){
+  document.querySelectorAll('.pieza').forEach(el=>{
+    el.addEventListener('dragstart', e=>{
+      draggedId = el.dataset.id;
+      // Determinar origen
+      const slotPadre = el.closest('.slot');
+      if(slotPadre){
+        draggedFrom = { tipo:'slot', index: parseInt(slotPadre.dataset.slot) };
+      }else{
+        draggedFrom = { tipo:'bandeja' };
+      }
+      el.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', draggedId);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragend', e=>{
+      el.classList.remove('dragging');
+      document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));
+    });
+  });
+
+  // Slots como drop targets
+  document.querySelectorAll('.slot').forEach(slot=>{
+    slot.addEventListener('dragover', e=>{
+      e.preventDefault();
+      slot.classList.add('drag-over');
+    });
+    slot.addEventListener('dragleave', ()=> slot.classList.remove('drag-over'));
+    slot.addEventListener('drop', e=>{
+      e.preventDefault();
+      slot.classList.remove('drag-over');
+      const slotIndex = parseInt(slot.dataset.slot);
+      colocarEnSlot(slotIndex);
+    });
+  });
+
+  // Bandeja como drop target (para devolver)
+  bandeja.addEventListener('dragover', e=>{
+    e.preventDefault();
+    bandeja.classList.add('drag-over');
+  });
+  bandeja.addEventListener('dragleave', ()=> bandeja.classList.remove('drag-over'));
+  bandeja.addEventListener('drop', e=>{
+    e.preventDefault();
+    bandeja.classList.remove('drag-over');
+    devolverABandeja();
+  });
+}
+
+function colocarEnSlot(slotIndex){
+  if(!draggedId) return;
+
+  // Si el slot ya tenía una pieza, devolverla a la bandeja
+  if(colocados[slotIndex]!==null){
+    piezasEnBandeja.push(colocados[slotIndex]);
+  }
+  // Quitar del origen
+  if(draggedFrom.tipo==='slot'){
+    colocados[draggedFrom.index] = null;
+  }else{
+    piezasEnBandeja = piezasEnBandeja.filter(id=>id!==draggedId);
+  }
+  // Asignar
+  colocados[slotIndex] = draggedId;
+
+  // Limpiar feedback
+  document.getElementById('resultado').classList.remove('show','ok','medio','malo');
+  document.querySelectorAll('.slot').forEach(s=>s.classList.remove('correcto','incorrecto','vacio-error'));
+
+  draggedId = null; draggedFrom = null;
+  renderBandeja();
+  renderSlots();
+}
+
+function devolverABandeja(){
+  if(!draggedId) return;
+  if(draggedFrom.tipo==='slot'){
+    colocados[draggedFrom.index] = null;
+    if(!piezasEnBandeja.includes(draggedId)) piezasEnBandeja.push(draggedId);
+  }
+  draggedId = null; draggedFrom = null;
+  renderBandeja();
+  renderSlots();
+}
+
+/* =========================================================
+   6. EVALUACIÓN
+   Puntuación = % de slots correctos.
+   Reglas:
+   - Slot con pieza igual al valor esperado → correcto.
+   - Slot vacío → error.
+   - Slot con "=" en un slot opcional → no penaliza (se ignora).
+   - Cualquier otra pieza → error.
+   ========================================================= */
+function evaluar(){
+  let aciertos = 0;
+  let evaluables = 0;
+
+  document.querySelectorAll('.slot').forEach((slot,i)=>{
+    slot.classList.remove('correcto','incorrecto','vacio-error');
+    const idPieza = colocados[i];
+    const esperado = RESPUESTA[i];
+
+    // ¿Es un slot opcional donde va "="?
+    const p = idPieza ? PIEZAS.find(x=>x.id===idPieza) : null;
+    const esIgualOpcional = p && p.valor==='=' && SLOTS_OPCIONALES.includes(i);
+
+    if(esIgualOpcional){
+      // No cuenta ni a favor ni en contra (pero es válido)
+      return;
+    }
+
+    evaluables++;
+    if(idPieza===null){
+      slot.classList.add('vacio-error');
+      return;
+    }
+    if(p.valor===esperado){
+      slot.classList.add('correcto');
+      aciertos++;
+    }else{
+      slot.classList.add('incorrecto');
+    }
+  });
+
+  const pct = evaluables>0 ? Math.round((aciertos/evaluables)*100) : 0;
+  const err = 100 - pct;
+
+  const res = document.getElementById('resultado');
+  res.classList.remove('ok','medio','malo');
+  res.classList.add('show');
+
+  if(pct===100){
+    res.classList.add('ok');
+    res.innerHTML = `🎉 ¡Perfecto! ${pct}% correcto · 0% errores`;
+  }else if(pct>=60){
+    res.classList.add('medio');
+    res.innerHTML = `👍 ${pct}% correcto · ${err}% errores`;
+  }else{
+    res.classList.add('malo');
+    res.innerHTML = `😅 ${pct}% correcto · ${err}% errores`;
+  }
+}
+
+/* =========================================================
+   7. BOTONES
+   ========================================================= */
+document.getElementById('btnResolver').addEventListener('click', evaluar);
+
+document.getElementById('btnReiniciar').addEventListener('click', ()=>{
+  colocados = new Array(RESPUESTA.length).fill(null);
+  piezasEnBandeja = [...PIEZAS.map(p=>p.id)];
+  document.querySelectorAll('.slot').forEach(s=>s.classList.remove('correcto','incorrecto','vacio-error'));
+  const res = document.getElementById('resultado');
+  res.classList.remove('show','ok','medio','malo');
+  res.innerHTML = '';
+  renderBandeja();
+  renderSlots();
+});
+
+document.getElementById('btnPista').addEventListener('click', ()=>{
+  const res = document.getElementById('resultado');
+  res.classList.remove('ok','malo');
+  res.classList.add('show','medio');
+  res.innerHTML = '💡 Pista: 50 km/h = 50 × (1000 m / 1 km) × (1 h / 3600 s). Coloca: 50 · km · h · × · 1000 · m · 3600 · s';
+});
+
+/* =========================================================
+   8. INICIALIZAR
+   ========================================================= */
+renderBandeja();
+renderSlots();
+</script>
+</body>
+</html>
