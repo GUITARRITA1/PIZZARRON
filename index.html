@@ -199,6 +199,19 @@
     letter-spacing:.5px;
     font-weight:normal;
   }
+    .resultado-linea{
+    margin:12px 0 6px;
+    padding:10px 14px;
+    background:rgba(142,202,230,.12);
+    border-left:4px solid var(--tiza-azul);
+    border-radius:6px;
+    font-size:1rem;
+    color:var(--tiza);
+  }
+  .resultado-linea b{
+    color:var(--tiza-amarilla);
+    font-size:1.2rem;
+  }
   .resultado-expresion{
     display:flex;
     flex-wrap:wrap;
@@ -567,7 +580,8 @@
 
     <h4>2) Verificación de tachados</h4>
     <div class="verificacion-expresion" id="verificacionExpresion"></div>
-    <div class="leyenda">
+        <p class="resultado-linea">Resultado: <b>50 km/h = 13,89 m/s</b></p>
+<div class="leyenda">
       <span><span class="muestra" style="background:var(--tiza-verde);box-shadow:0 0 6px var(--tiza-verde)"></span> Tachado correcto</span>
       <span><span class="muestra" style="background:var(--tiza-roja);box-shadow:0 0 6px var(--tiza-roja)"></span> Tachado faltante (deberías tacharlo)</span>
       <span><span class="muestra" style="background:#ffb347;box-shadow:0 0 6px #ffb347"></span> Tachado que sobra</span>
