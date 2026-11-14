@@ -476,7 +476,7 @@
 <body>
 
 <div class="pizarron">
-  <h1>✏️ Editor de Ecuaciones: 50 km/h → m/s</h1>
+  <h1>✏️ CONVERSIÓN de UNIDADES: 50 km/h → m/s</h1>
 
   <div class="enunciado">
     <b>Enunciado:</b> Un automóvil viaja a una velocidad de <b>50 km/h</b>.
@@ -490,7 +490,7 @@
     <ol>
       <li>Arrastra las piezas de la <b>bandeja</b> al <b>editor</b>.</li>
       <li>Pulsa <b>➗ Fracción</b> para crear una fracción nueva (ilimitadas).</li>
-      <li>Pulsa <b>✂️ Tachar</b> y luego haz clic en las unidades que se cancelan.</li>
+      <li>Pulsa <b>✂️ Tachar</b> y luego haz clic en las unidades que se SIMPLIFICAN</li>
       <li>Pulsa <b>✅ Resolver</b>: aparece el cuadro final con la expresión simplificada, los tachados correctos y tu puntaje.</li>
     </ol>
   </div>
@@ -621,7 +621,7 @@ function piezaHTML(p, opts={}){
 }
 
 function renderBandeja(){
-  bandeja.innerHTML = '<div class="titulo-bandeja">🧩 Piezas disponibles (arrastra al editor)</div>';
+  bandeja.innerHTML = '<div class="titulo-bandeja">🧩 Piezas disponibles (arrastra al editor, NO deben sobrar piezas)</div>';
   piezasEnBandeja.forEach(id=>{
     const p = PIEZAS.find(x=>x.id===id);
     if(p) bandeja.insertAdjacentHTML('beforeend',
