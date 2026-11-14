@@ -42,6 +42,24 @@
     margin:0 0 12px;
     text-shadow:1px 1px 3px rgba(0,0,0,.5);
   }
+   h1.titulo-con-logo{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:nowrap;
+  }
+  h1.titulo-con-logo .logo-titulo{
+    height:32px;          /* tamaño del logo: 24px muy chico, 32px chico, 40px mediano */
+    width:auto;
+    object-fit:contain;
+    filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));
+    flex-shrink:0;
+    transform:translateY(1px);
+  }
+  h1.titulo-con-logo span{
+    line-height:1.2;
+  }
   .enunciado{
     background:rgba(0,0,0,.18);
     border-left:6px solid var(--tiza-amarilla);
@@ -470,7 +488,9 @@
     .herramientas{justify-content:center;}
     .barra-final{justify-content:center;}
     #resultado{margin-left:0;width:100%;}
-  }
+ h1.titulo-con-logo{gap:8px;}
+    h1.titulo-con-logo .logo-titulo{height:26px;}
+ }
 </style>
 </head>
 <body>
